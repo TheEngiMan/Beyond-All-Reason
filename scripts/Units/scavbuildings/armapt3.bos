@@ -3,94 +3,113 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad,nano3, nano4, nano2, nano1, head1, head2, head3, head4;
+piece  base, pad, nano3, nano4, nano2, nano1, dish, blink, blinka, blinkb;
 
-static-var  spray, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
+Standby()
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 100;
 	}
 	while( TRUE )
 	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-				emit-sfx smoketype from pad;
-			
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
+		hide blinkb;
+		//sleep 120;
+		show blinka;
+		sleep 1975;
+		hide blinka;
+		//sleep 120;
+		show blinkb;
+		sleep 1975;
 	}
+	sleep 50;
+	start-script Standby();
+}
+
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 1 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
 }
 
 
-Go()
+activatescr()
 {
-	//get PRINT(get (GAME_FRAME), 11);
-	
-	turn head1 to y-axis <-25> speed <45>;
-	turn head2 to y-axis <25> speed <45>;
-	turn head3 to y-axis <25> speed <45>;
-	turn head4 to y-axis <-25> speed <45>;
-	wait-for-turn head1 around y-axis;
-	
-	var trycount;
-	trycount = 0;
+	//start-script Lights();
+	sleep 26;
+}
+
+deactivatescr()
+{
+//	sleep 26;
+}
+
+OpenYard()
+{
 	set YARD_OPEN to 1;
 	while( !get YARD_OPEN )
 	{
-		trycount = trycount + 1;
-		set BUGGER_OFF to 1;
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	
-	//get PRINT(get (GAME_FRAME), 1111, trycount);
-	set BUGGER_OFF to 0;
-	set INBUILDSTANCE to 1;
 }
 
-Stop()
+CloseYard()
 {
-	//get PRINT(get (GAME_FRAME), 22);
-	set INBUILDSTANCE to 0;
-	
-	
-	turn head1 to y-axis <0> speed <45>;
-	turn head2 to y-axis <0> speed <45>;
-	turn head3 to y-axis <0> speed <45>;
-	turn head4 to y-axis <0> speed <45>;
-	wait-for-turn head1 around y-axis;
-	
-	var trycount;
-	trycount = 0;
 	set YARD_OPEN to 0;
 	while( get YARD_OPEN )
 	{
-		trycount = trycount + 1;
-		set BUGGER_OFF to 1;
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	
-	//get PRINT(get (GAME_FRAME), 2222, trycount);
-	set BUGGER_OFF to 0;
+  set BUGGER_OFF to 1;
+}
+
+Go()
+{
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+}
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+}
+DishSpin()
+{
+	show blink;
+	spin dish around y-axis speed <60>;
+}
+DishStopSpin()
+{
+	hide blink;
+	spin dish around y-axis speed <0.000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+		hide blink;
+	    call-script DishStopSpin();
+	} else {
+	    call-script DishSpin();
+	}
 }
 
 InitState()
@@ -101,13 +120,13 @@ InitState()
 
 RequestState(requestedstate, currentstate)
 {
-	if( statechg_StateChanging ) //we are still in the state changing process
+	if( statechg_StateChanging )
 	{
-		statechg_DesiredState = requestedstate; //make the requested state the one to be in
+		statechg_DesiredState = requestedstate;
 		return (0);
 	}
-	statechg_StateChanging = TRUE; // flad that we are gonna change states
-	currentstate = statechg_DesiredState; //
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
@@ -132,56 +151,24 @@ Create()
 	hide nano3;
 	hide nano4;
 	hide pad;
+	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
+	start-script Standby();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
-	start-script SmokeUnit();
+	spin dish around y-axis speed <60>;
+	start-script Lights();
 }
 
-Activate() // activate first
-{
-	//get PRINT(get (GAME_FRAME), 3333);
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
-}
 
-Deactivate()
-{
-	//get PRINT(get (GAME_FRAME), 4444);
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-	start-script RequestState(1);
-}
-
-StartBuilding() // Is only called once INBUILDSTANCE == 1 !
-{
-	//get PRINT(get (GAME_FRAME), 5555);
-	//spin pad around y-axis speed <30.005495>;
-}
-
-StopBuilding()
-{
-	//get PRINT(get (GAME_FRAME), 6666);
-	set BUGGER_OFF to 1; // tell units to get out of here
-	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
-	//stop-spin pad around y-axis;
-	sleep 5000;   // then we wait for 5 sec
-	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
-	set BUGGER_OFF to 0; // ok now we dont mind if they are here
-}
-
-QueryBuildInfo(piecenum)
-{
-	piecenum = pad;
-}
-
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 QueryNanoPiece(piecenum)
 {
-
 	if( spray == 0 )
 	{
 		piecenum = nano1;
@@ -193,18 +180,60 @@ QueryNanoPiece(piecenum)
 	if( spray == 2 )
 	{
 		piecenum = nano3;
-	}	
-
-	if( spray ==3 )
+	}
+	if( spray == 3 )
 	{
 		piecenum = nano4;
-	}	
-	spray=spray +1;
-	
-	if( spray >3 )
+
+	}
+	spray=spray+1;
+	if (spray >3)
 	{
 		spray=0;
 	}
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+    sleep 5000;
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
+	spin pad around y-axis speed <30.005495>;
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	stop-spin pad around y-axis;
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
 }
 
 SweetSpot(piecenum)
@@ -218,57 +247,53 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type BITMAPONLY | NOHEATCLOUD;
-		explode head4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano4 type BITMAPONLY | NOHEATCLOUD;
-		explode head3 type BITMAPONLY | NOHEATCLOUD;
-		explode nano3 type BITMAPONLY | NOHEATCLOUD;
-		explode head2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano2 type BITMAPONLY | NOHEATCLOUD;
-		explode head1 type BITMAPONLY | NOHEATCLOUD;
 		explode nano1 type BITMAPONLY | NOHEATCLOUD;
+		explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		explode nano3 type BITMAPONLY | NOHEATCLOUD;
+		explode nano4 type BITMAPONLY | NOHEATCLOUD;
+		explode blinka type BITMAPONLY | NOHEATCLOUD;
+		explode blinkb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type FALL | NOHEATCLOUD;
-		explode head4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano4 type FALL | NOHEATCLOUD;
-		explode head3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type FALL | NOHEATCLOUD;
+		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano3 type FALL | NOHEATCLOUD;
-		explode head2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano2 type FALL | NOHEATCLOUD;
-		explode head1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blinka type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blinkb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode pad type SMOKE | FALL | NOHEATCLOUD;
-		explode head4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode head3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode head2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode head1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nano3 type SMOKE | FALL | NOHEATCLOUD;
+		explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blinka type SMOKE | FALL | NOHEATCLOUD;
+		explode blinkb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode pad type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode head4 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode head3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode head2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode head1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blinka type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blinkb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
