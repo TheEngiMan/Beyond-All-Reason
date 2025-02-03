@@ -6,7 +6,7 @@ return {
 		energycost = 60000,
 		metalcost = 8500,
 		builder = true,
-		buildpic = "ARMAP.DDS",
+		buildpic = "ARMAPT3.DDS",
 		buildtime = 72400,
 		canmove = true,
 		collisionvolumeoffsets = "0 8 1",

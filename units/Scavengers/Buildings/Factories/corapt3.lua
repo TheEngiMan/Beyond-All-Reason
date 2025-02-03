@@ -5,7 +5,7 @@ return {
 		energycost = 60000,
 		metalcost = 8500,
 		builder = true,
-		buildpic = "CORAP.DDS",
+		buildpic = "CORAPT3.DDS",
 		buildtime = 72400,
 		canmove = true,
 		collisionvolumeoffsets = "0 -14 -23",
