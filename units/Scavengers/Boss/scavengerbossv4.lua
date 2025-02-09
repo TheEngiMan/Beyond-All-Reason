@@ -10,7 +10,6 @@ local baseValues = { --format: {value, multiplier}
 	health = { math.min(800000 * playerCountScale, 10000000), 1.15 },
 
 	--DPS related
-	botCannonProjectiles = { 3 * playerCountScale, 1.15 },
 	disintegratorBurst = { 1, 1.15 }, -- cannot be lower than 1
 	minigunDamage = { 333 * playerCountScale, 1.15 },
 	missileDamage = { 3500 * playerCountScale, 1.15 },
@@ -688,61 +687,6 @@ for difficulty, stats in pairs(difficultyParams) do
 					subs = stats.topTurretsDamage/4,
 				},
 			},
-			special_botcannon = {
-				accuracy = 1,
-				areaofeffect = 500,
-				avoidfeature = false,
-				avoidfriendly = false,
-				avoidground = false,
-				burst = stats.botCannonProjectiles,
-				burstrate = 0.75,
-				cegtag = "arty-botrail",
-				collidefriendly = false,
-				craterareaofeffect = 116,
-				craterboost = 0.1,
-				cratermult = 0.1,
-				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:botrailspawn",
-				gravityaffected = "true",
-				heightboostfactor = 8,
-				--hightrajectory = 1,
-				impulsefactor = 0.5,
-				intensity = 0.9,
-				leadbonus = 0,
-				metalpershot = 96,
-				model = "Units/cormex.s3o",
-				--mygravity = 0.22,
-				name = "SPECIAL Epic Squad Cannon",
-				noselfdamage = true,
-				proximitypriority = -1,
-				range = 45250,
-				reloadtime = 5,
-				sprayangle = 1200,
-				stockpile = true,
-				stockpiletime = 3,
-				soundhit = "xplonuk1xs",
-				soundhitwet = "splshbig",
-				soundstart = "lrpcshot3",
-				soundstartvolume = 50,
-				targetborder = 1.0,
-				turret = true,
-				waterbounce = true,
-				bounceSlip = 0.74,
-				bouncerebound = 0.5,
-				numbounce = 10,
-				waterweapon = true,
-				weapontype = "Cannon",
-				weaponvelocity = 1500,
-				customparams = {
-					spawns_name = "squadarmsptkt4 squadcorkarganetht4 squadcorakt4  squadcorakt4  squadcorakt4  squadcorakt4 squadcorakt4 squadarmpwt4 squadarmpwt4 squadarmpwt4 squadarmpwt4 squadarmpwt4",
-					spawns_surface = "LAND",
-					spawns_mode = "random",
-					stockpilelimit = 1,
-				},
-				damage = {
-					default = 0,
-				},
-			},
 			sensor_vtol = { -- senses air units
 				areaofeffect = 4,
 				avoidfeature = false,
@@ -947,26 +891,21 @@ for difficulty, stats in pairs(difficultyParams) do
 				onlytargetcategory = "NOTSUB",
 			},
 			[12] = {
-				badtargetcategory = "VTOL GROUNDSCOUT SHIP WEAPON",
-				def = "special_botcannon",
-				onlytargetcategory = "SURFACE",
-			},
-			[13] = {
 				def = "sensor_vtol",
 				onlytargetcategory = "VTOL",
 			},
-			[14] = {
+			[13] = {
 				def = "sensor_groundscout",
 				onlytargetcategory = "GROUNDSCOUT",
 			},
-			[15] = {
+			[14] = {
 				def = "sensor_ground_near",
 				onlytargetcategory = "SURFACE",
 			},
-			[16] = {
+			[15] = {
 				def = "sensor_ground_far",
 			},
-			[17] = {
+			[16] = {
 				def = "setting_turbo_delay",
 			},
 		},
