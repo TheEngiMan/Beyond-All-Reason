@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 41,
+        version = 42,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -50,6 +50,7 @@ end
 	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 	v40   (Floris): draw a faint pencil/eraser when player is drawing/erasing
 	v41   (Floris): added APM info to cpu/ping tooltip
+	v42   (Floris): support FFA allyteam ranking leaderboard style
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -1653,7 +1654,7 @@ end
 function widget:DrawScreen()
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
-    local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
+    --local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
 
     -- draws the background
     if Background then
@@ -1942,7 +1943,9 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                         end
 						if WG.allyTeamRanking and enemyListShow then
                         	DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
+							leaderboardOffset = drawListOffset[i]
 						else
+							leaderboardOffset = nil
                         	DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
 						end
                         if Spring.GetGameFrame() <= 0 then
@@ -3622,6 +3625,15 @@ function widget:Update(delta)
     hoverPlayerlist = false
     if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
+
+		if leaderboardOffset then
+			local posY = widgetPosY + widgetHeight - (leaderboardOffset or 0)
+			if IsOnRect(mx, my, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
+				tipText = "\255\222\255\222"..Spring.I18N('ui.playersList.leaderboard').."\n\255\222\222\222  "..Spring.I18N('ui.playersList.leaderboardTooltip')
+				tipTextTime = os.clock()
+			end
+		end
+
         if tipText and WG['tooltip'] then
             WG['tooltip'].ShowTooltip('advplayerlist', tipText)
         end
@@ -3773,7 +3785,7 @@ function widget:ViewResize()
     font = WG['fonts'].getFont()
     font2 = WG['fonts'].getFont(fontfile2, 1.1, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
 
-	local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
+	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then
 		--AdvPlayersListAtlas:Delete()
 	end
