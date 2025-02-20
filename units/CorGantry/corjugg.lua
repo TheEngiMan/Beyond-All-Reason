@@ -151,8 +151,7 @@ return {
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 0,
-				firesubmersed = false,
-				gravityaffected = true,
+				flighttime = 400,
 				impulsefactor = 1.1,
 				intensity = 4,
 				model = "cortronmissile.s3o",
@@ -177,6 +176,7 @@ return {
 				texture3 = "null",
 				turret = true,
 				waterweapon = false,
+				weapontimer = 0,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				damage = {
