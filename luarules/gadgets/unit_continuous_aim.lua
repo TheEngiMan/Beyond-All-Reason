@@ -60,6 +60,7 @@ local convertedUnitsNames = {
 	['armcrus'] = 5,
 	['corsala'] = 6,
 	['corsiegebreaker'] = 5,
+	['legerailtank'] = 9,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	['armthor'] = 4,
@@ -130,11 +131,13 @@ local convertedUnitsNames = {
 	['legaskirmtank'] = 5,
 	['legaheattank'] = 3,
 	['legeheatraymech'] = 1,
+	['legeheatraymech_old'] = 1,
 	['legbunk'] = 3,
 	['legrwall'] = 4,
 	['legjav'] = 1,
 	['legeshotgunmech'] = 3,
 	['legehovertank'] = 4,
+	['armanavaldefturret'] = 4,
 }
 --add entries for scavboss
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',

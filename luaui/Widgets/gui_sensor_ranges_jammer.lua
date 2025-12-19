@@ -24,7 +24,7 @@ local circleSegments = 62 -- To ensure its only 2 warps per instance
 local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
 --------- End configurables ------
 
-local minJammerDistance = 100
+local minJammerDistance = 63
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 ------- GL4 NOTES -----
@@ -152,19 +152,6 @@ function widget:DrawGenesis()
     gl.RenderToTexture(jammerStencilTexture, DrawLOSStencil)
 end
 
--- When paused, DrawGenesis is removed. We have to pick up some rerenders ourselves.
-local forceRender = false
-
-function widget:GamePaused(playerID, paused)
-	if paused then
-		widgetHandler:RemoveCallIn("DrawGenesis")
-		forceRender = true
-	else
-		widgetHandler:UpdateCallIn("DrawGenesis")
-		forceRender = false
-	end
-end
-
 -- This shows the debug stencil texture in the bottom left corner of the screen
 if debugmode then 
 	function widget:DrawScreen()	
@@ -220,9 +207,6 @@ local function InitializeUnits()
 		end
 	end
 	InstanceVBOTable.uploadAllElements(circleInstanceVBO)
-	if forceRender then
-		gl.RenderToTexture(jammerStencilTexture, DrawLOSStencil)
-	end
 end
 
 function widget:PlayerChanged()

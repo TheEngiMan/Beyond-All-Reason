@@ -19,7 +19,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 21,
 		metalcost = 560,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAN.s3o",
 		script = "Units/corcan.cob",
@@ -104,7 +104,7 @@ return {
 				impactonly = 1,
 				name = "Laserroar",
 				noselfdamage = true,
-				soundhitdry = "laserroar",
+				soundhitdry = "",
 				soundhitdryvolume = 16,
 				weapontype = "Cannon",
 				customparams = {

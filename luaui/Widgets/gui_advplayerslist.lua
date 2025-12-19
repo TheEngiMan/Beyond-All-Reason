@@ -1133,7 +1133,12 @@ function GetSkill(playerID)
                 local color2 = math.max(0.75, color * color)
                 tsRed, tsGreen, tsBlue = math.floor(255 * color), math.floor(255 * color2), math.floor(255 * color2)
             end
-            osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            if not osSigma or tonumber(osSigma) > 6.65 then
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. "??"
+            else
+                osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
+            end
+
         end
     else
         osSkill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
@@ -1197,7 +1202,8 @@ function CreatePlayer(playerID)
     return {
         rank = trank,
         skill = osSkillFormatted,
-        name = tname,
+        name = pname,
+		orgname = tname,
 		nameIsAlias = isAliasName,
         team = tteam,
         allyteam = tallyteam,
@@ -1294,6 +1300,7 @@ function CreatePlayerFromTeam(teamID)
         rank = 8, -- "don't know which" value
         skill = "",
         name = tname,
+		orgname = tname,
         team = teamID,
         allyteam = tallyteam,
         red = tred,
@@ -1673,6 +1680,9 @@ function widget:DrawScreen()
    		end
 	end
 
+	-- Push matrix to preserve GL state for other widgets
+	gl.PushMatrix()
+	
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -1712,9 +1722,13 @@ function widget:DrawScreen()
         gl_CallList(ShareSlider)
     end
 
-    local scaleReset = widgetScale / widgetScale / widgetScale
-    gl.Translate(-scaleDiffX, -scaleDiffY, 0)
-    gl.Scale(scaleReset, scaleReset, 0)
+	-- Pop matrix to restore GL state for other widgets
+	gl.PopMatrix()
+	
+	-- Reset GL state to clean defaults for other widgets
+	gl.Color(1, 1, 1, 1)
+	gl.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 -- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
@@ -2787,9 +2801,15 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     --desynced = playerID == 1
     local pScale = (0.5+playerScale)*0.67  --dont scale too much for the already smaller bonus font
 	if desynced then
+        if dark then
+            font2:SetOutlineColor(0, 0, 0, 1)
+        end
 		font2:SetTextColor(1,0.45,0.45,1)
 		font2:Print(Spring.I18N('ui.playersList.desynced'), m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
 	elseif player[playerID] and not player[playerID].dead and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier ~= 1 then
+        if dark then
+            font2:SetOutlineColor(0, 0, 0, 1)
+        end
         if player[playerID].incomeMultiplier > 1 then
             font2:SetTextColor(0.5,1,0.5,1)
             font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1+0.005)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14*pScale), posY + (5.7*playerScale), 8*pScale, "o")
@@ -3325,7 +3345,7 @@ function widget:MousePress(x, y, button)
                             if clickedPlayer.totake then
                                 if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
                                     --take button
-                                    Take(clickedPlayer.team, clickedPlayer.name, i)
+                                    Take(clickedPlayer.team, clickedPlayer.orgname or clickedPlayer.name, i)
                                     return true
                                 end
                             end
@@ -3464,7 +3484,7 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..energyPlayer.name)
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveEnergy:amount='..shareAmount..':name='..(energyPlayer.orgname or energyPlayer.name))
                 WG.sharedEnergyFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
@@ -3486,7 +3506,7 @@ function widget:MouseRelease(x, y, button)
             elseif shareAmount > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", shareAmount)
                 --Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
-				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..metalPlayer.name)
+				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.giveMetal:amount='..shareAmount..':name='..(metalPlayer.orgname or metalPlayer.name))
                 WG.sharedMetalFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
